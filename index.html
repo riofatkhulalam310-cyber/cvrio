@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rio — Developer & Trader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0E14;
+    --bg-soft: #0F1420;
+    --text: #E8ECF1;
+    --muted: #6B7280;
+    --blue: #4F7CFF;
+    --teal: #2DD4BF;
+    --line: rgba(232,236,241,0.08);
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    overflow-x:hidden;
+  }
+
+  #bg-canvas{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    z-index:0;
+    pointer-events:none;
+  }
+
+  .content{
+    position:relative;
+    z-index:1;
+  }
+
+  section{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:8vh clamp(20px, 8vw, 100px);
+    position:relative;
+  }
+
+  @media (max-width: 1024px){
+    section{
+      padding:8vh clamp(20px, 6vw, 80px);
+    }
+  }
+
+  @media (max-width: 768px){
+    section{
+      min-height:auto;
+      padding:60px clamp(16px, 5vw, 40px);
+      margin-top:60px;
+    }
+  }
+
+  @media (max-width: 600px){
+    section{
+      padding:48px clamp(12px, 4vw, 24px);
+      margin-top:50px;
+    }
+  }
+
+  @media (max-width: 480px){
+    section{
+      padding:40px 16px;
+      margin-top:40px;
+    }
+  }
+
+  /* NAV */
+  nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:10;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:28px 8vw;
+    mix-blend-mode:difference;
+    backdrop-filter:blur(10px);
+  }
+  nav .logo{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:18px;
+    letter-spacing:0.02em;
+    flex-shrink:0;
+  }
+  nav .links{
+    display:flex;
+    gap:32px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+  }
+  nav .links a{
+    color:var(--text);
+    text-decoration:none;
+    opacity:0.6;
+    transition:opacity 0.3s;
+    padding:8px 12px;
+  }
+  nav .links a:hover, nav .links a:focus-visible{opacity:1;}
+
+  nav .hamburger{
+    display:none;
+    flex-direction:column;
+    gap:5px;
+    cursor:pointer;
+    background:none;
+    border:none;
+    padding:12px;
+    margin:-12px -12px -12px 0;
+    min-width:48px;
+    min-height:48px;
+    justify-content:center;
+    align-items:center;
+  }
+  nav .hamburger span{
+    width:24px;
+    height:2px;
+    background:var(--text);
+    border-radius:1px;
+    transition:all 0.3s;
+  }
+  nav .hamburger.active span:nth-child(1){
+    transform:rotate(45deg) translate(8px,8px);
+  }
+  nav .hamburger.active span:nth-child(2){
+    opacity:0;
+  }
+  nav .hamburger.active span:nth-child(3){
+    transform:rotate(-45deg) translate(7px,-8px);
+  }
+
+  .mobile-menu{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100vh;
+    background:var(--bg);
+    z-index:9;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:32px;
+    padding:80px 20px 100px;
+    overflow-y:auto;
+  }
+  .mobile-menu.active{
+    display:flex;
+  }
+  .mobile-menu a{
+    font-family:'JetBrains Mono', monospace;
+    font-size:18px;
+    color:var(--text);
+    text-decoration:none;
+    opacity:0.7;
+    transition:opacity 0.3s;
+    padding:12px 16px;
+    border-radius:8px;
+    display:block;
+  }
+  .mobile-menu a:hover, .mobile-menu a:focus-visible{
+    opacity:1;
+    color:var(--blue);
+    background:rgba(79, 124, 255, 0.1);
+  }
+
+  @media (max-width: 1024px){
+    nav .links{
+      gap:20px;
+      font-size:12px;
+    }
+  }
+
+  @media (max-width: 768px){
+    nav .links{display:none;}
+    nav .hamburger{display:flex;}
+    nav{padding:16px 4vw;}
+    nav .logo{font-size:14px;}
+  }
+
+  @media (max-width: 480px){
+    nav{padding:14px 4vw;}
+    nav .logo{font-size:12px;}
+    .mobile-menu{
+      gap:24px;
+      padding:70px 20px 80px;
+    }
+    .mobile-menu a{
+      font-size:16px;
+    }
+  }
+
+  /* HERO */
+  .hero{
+    align-items:flex-start;
+    min-height:100vh;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:clamp(11px, 2vw, 13px);
+    color:var(--teal);
+    letter-spacing:0.08em;
+    margin-bottom:24px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--teal);
+    box-shadow:0 0 12px var(--teal);
+    flex-shrink:0;
+  }
+  .hero h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(40px, 9vw, 110px);
+    line-height:0.98;
+    letter-spacing:-0.02em;
+    max-width:14ch;
+    word-break:break-word;
+  }
+  .hero h1 .accent{
+    color:var(--blue);
+    font-style:normal;
+  }
+  .hero p.sub{
+    margin-top:clamp(16px, 3vw, 28px);
+    font-size:clamp(14px, 2.2vw, 20px);
+    color:var(--muted);
+    max-width:42ch;
+    line-height:1.6;
+  }
+  .hero .scroll-hint{
+    position:absolute;
+    bottom:6vh;
+    left:clamp(16px, 8vw, 100px);
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .scroll-line{
+    width:1px; height:40px;
+    background:linear-gradient(to bottom, var(--muted), transparent);
+    animation:scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse{
+    0%,100%{opacity:0.3;}
+    50%{opacity:1;}
+  }
+
+  @media (max-width: 1024px){
+    .hero h1{
+      max-width:100%;
+      margin-bottom:20px;
+    }
+  }
+
+  @media (max-width: 768px){
+    .hero h1{
+      max-width:100%;
+    }
+    .hero .scroll-hint{
+      bottom:3vh;
+      left:clamp(12px, 5vw, 40px);
+      font-size:10px;
+    }
+    .scroll-line{
+      height:30px;
+    }
+  }
+
+  @media (max-width: 600px){
+    .eyebrow{
+      margin-bottom:16px;
+    }
+    .hero h1{
+      font-size:clamp(32px, 8vw, 48px);
+      line-height:1.05;
+      margin-bottom:16px;
+    }
+    .hero p.sub{
+      margin-top:12px;
+      font-size:clamp(14px, 1.8vw, 16px);
+      max-width:100%;
+    }
+  }
+
+  @media (max-width: 480px){
+    .hero{
+      padding-top:100px;
+    }
+    .eyebrow{
+      font-size:10px;
+      margin-bottom:12px;
+    }
+    .hero h1{
+      font-size:clamp(28px, 7vw, 40px);
+      line-height:1;
+      margin-bottom:12px;
+    }
+    .hero p.sub{
+      margin-top:12px;
+      font-size:clamp(13px, 1.5vw, 15px);
+      max-width:100%;
+      line-height:1.5;
+    }
+    .hero .scroll-hint{
+      display:none;
+    }
+  }
+
+  /* SECTION LABELS */
+  .label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:clamp(10px, 1.5vw, 13px);
+    color:var(--blue);
+    letter-spacing:0.1em;
+    margin-bottom:16px;
+  }
+  h2.title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:clamp(32px, 5vw, 56px);
+    margin-bottom:40px;
+    letter-spacing:-0.01em;
+    line-height:1.1;
+  }
+
+  @media (max-width: 1024px){
+    .label{
+      font-size:clamp(10px, 1.3vw, 12px);
+      margin-bottom:14px;
+    }
+    h2.title{
+      font-size:clamp(28px, 4vw, 48px);
+      margin-bottom:32px;
+    }
+  }
+
+  @media (max-width: 768px){
+    .label{
+      font-size:10px;
+      margin-bottom:12px;
+    }
+    h2.title{
+      font-size:clamp(24px, 3.5vw, 36px);
+      margin-bottom:28px;
+    }
+  }
+
+  @media (max-width: 600px){
+    .label{
+      font-size:9px;
+      margin-bottom:10px;
+    }
+    h2.title{
+      font-size:clamp(20px, 3vw, 28px);
+      margin-bottom:24px;
+    }
+  }
+
+  @media (max-width: 480px){
+    .label{
+      font-size:9px;
+      margin-bottom:8px;
+    }
+    h2.title{
+      font-size:clamp(18px, 2.5vw, 24px);
+      margin-bottom:20px;
+    }
+  }
+
+  /* ABOUT */
+  .about-grid{
+    display:grid;
+    grid-template-columns:280px 1fr;
+    gap:60px;
+    align-items:start;
+    max-width:1100px;
+  }
+  .avatar{
+    width:280px;
+    height:280px;
+    border-radius:16px;
+    background:linear-gradient(135deg, var(--bg-soft), #161d2c);
+    border:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:64px;
+    font-weight:600;
+    color:var(--blue);
+    position:relative;
+    overflow:hidden;
+    flex-shrink:0;
+  }
+  .avatar img{
+    width:100%;height:100%;
+    object-fit:cover;
+    border-radius:16px;
+  }
+  .avatar::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    border-radius:16px;
+    box-shadow:inset 0 0 0 1px var(--line);
+  }
+  .about-text p{
+    font-size:clamp(15px, 2vw, 17px);
+    line-height:1.8;
+    color:var(--text);
+    opacity:0.85;
+    margin-bottom:20px;
+    max-width:55ch;
+  }
+  .about-text .highlight{
+    color:var(--teal);
+    font-weight:500;
+  }
+
+  @media (max-width: 1024px){
+    .about-grid{
+      gap:40px;
+      grid-template-columns:240px 1fr;
+    }
+    .avatar{
+      width:240px;
+      height:240px;
+      font-size:56px;
+    }
+  }
+
+  @media (max-width: 768px){
+    .about-grid{
+      grid-template-columns:1fr;
+      gap:30px;
+    }
+    .avatar{
+      width:100%;
+      max-width:220px;
+      height:220px;
+      font-size:48px;
+      margin:0 auto;
+    }
+    .about-text p{
+      font-size:clamp(14px, 2vw, 16px);
+      max-width:100%;
+    }
+  }
+
+  @media (max-width: 600px){
+    .avatar{
+      max-width:180px;
+      height:180px;
+      font-size:40px;
+      margin:0 auto;
+    }
+    .about-text p{
+      font-size:14px;
+      line-height:1.7;
+    }
+  }
+
+  @media (max-width: 480px){
+    .avatar{
+      max-width:140px;
+      height:140px;
+      font-size:32px;
+      margin:0 auto;
+    }
+    .about-text p{
+      font-size:13px;
+      margin-bottom:14px;
+      line-height:1.6;
+    }
+  }
+
+  /* SKILLS */
+  .skills-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    max-width:1100px;
+  }
+  .skill-card{
+    background:var(--bg);
+    padding:32px 28px;
+    transition:background 0.3s, transform 0.3s;
+  }
+  .skill-card:hover{
+    background:var(--bg-soft);
+    transform:translateY(-2px);
+  }
+  .skill-card:focus-within{
+    outline:2px solid var(--blue);
+    outline-offset:-2px;
+  }
+  .skill-card .icon-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:clamp(10px, 1.5vw, 11px);
+    color:var(--muted);
+    letter-spacing:0.08em;
+    margin-bottom:14px;
+  }
+  .skill-card h3{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:clamp(18px, 2.5vw, 20px);
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .skill-card p{
+    font-size:clamp(13px, 1.8vw, 14px);
+    color:var(--muted);
+    line-height:1.6;
+  }
+  .skill-card .stack{
+    margin-top:16px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .skill-card .stack span{
+    font-family:'JetBrains Mono', monospace;
+    font-size:clamp(10px, 1.5vw, 11px);
+    padding:6px 12px;
+    border:1px solid var(--line);
+    border-radius:20px;
+    color:var(--blue);
+    word-break:break-word;
+  }
+
+  @media (max-width: 1024px){
+    .skills-grid{
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    }
+  }
+
+  @media (max-width: 768px){
+    .skills-grid{
+      grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+      gap:0;
+    }
+    .skill-card{
+      padding:24px 20px;
+    }
+    .skill-card h3{
+      font-size:clamp(16px, 2vw, 18px);
+    }
+  }
+
+  @media (max-width: 600px){
+    .skills-grid{
+      grid-template-columns:repeat(2, 1fr);
+    }
+    .skill-card{
+      padding:20px 16px;
+    }
+    .skill-card p{
+      font-size:12px;
+      line-height:1.5;
+    }
+  }
+
+  @media (max-width: 480px){
+    .skills-grid{
+      grid-template-columns:1fr;
+    }
+    .skill-card{
+      padding:18px 14px;
+    }
+    .skill-card h3{
+      font-size:15px;
+      margin-bottom:8px;
+    }
+    .skill-card p{
+      font-size:12px;
+    }
+    .skill-card .stack{
+      gap:6px;
+      margin-top:12px;
+    }
+    .skill-card .stack span{
+      padding:4px 8px;
+      font-size:10px;
+    }
+  }
+
+  /* PROJECTS */
+  .projects-list{
+    max-width:1100px;
+    width:100%;
+  }
+  .project-row{
+    display:grid;
+    grid-template-columns:60px 1fr auto;
+    gap:24px;
+    align-items:center;
+    padding:32px 0;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+    transition:padding-left 0.3s, background 0.3s;
+    border-radius:8px;
+    padding:24px;
+    margin:-24px 0;
+  }
+  .project-row:hover, .project-row:focus-within{
+    padding-left:12px;
+    background:rgba(79, 124, 255, 0.05);
+  }
+  .project-row .num{
+    font-family:'JetBrains Mono', monospace;
+    color:var(--muted);
+    font-size:14px;
+    text-align:center;
+    min-width:40px;
+  }
+  .project-row .info h3{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:clamp(20px, 2.5vw, 24px);
+    font-weight:600;
+    margin-bottom:8px;
+    line-height:1.2;
+  }
+  .project-row .info p{
+    color:var(--muted);
+    font-size:clamp(13px, 1.8vw, 14px);
+    max-width:60ch;
+    line-height:1.6;
+  }
+  .project-row .tags{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+  .project-row .tags span{
+    font-family:'JetBrains Mono', monospace;
+    font-size:clamp(10px, 1.5vw, 11px);
+    color:var(--teal);
+    padding:4px 8px;
+    border-radius:4px;
+    background:rgba(45, 212, 191, 0.1);
+    white-space:nowrap;
+  }
+
+  @media (max-width: 1024px){
+    .project-row{
+      gap:20px;
+      padding:24px;
+      margin:-24px 0;
+    }
+  }
+
+  @media (max-width: 768px){
+    .project-row{
+      grid-template-columns:1fr;
+      gap:12px;
+      padding:20px;
+      margin:-20px 0;
+    }
+    .project-row:hover, .project-row:focus-within{
+      padding-left:20px;
+    }
+    .project-row .num{
+      display:none;
+    }
+    .project-row .info h3{
+      font-size:clamp(18px, 2vw, 20px);
+    }
+    .project-row .info p{
+      font-size:clamp(12px, 1.6vw, 13px);
+      max-width:100%;
+    }
+    .project-row .tags{
+      justify-content:flex-start;
+    }
+  }
+
+  @media (max-width: 600px){
+    .project-row{
+      padding:16px;
+      margin:-16px 0;
+    }
+    .project-row .info h3{
+      font-size:16px;
+      margin-bottom:6px;
+    }
+    .project-row .info p{
+      font-size:12px;
+    }
+  }
+
+  @media (max-width: 480px){
+    .project-row{
+      padding:12px;
+      margin:-12px 0;
+      gap:8px;
+    }
+    .project-row:hover, .project-row:focus-within{
+      padding-left:12px;
+    }
+    .project-row .info h3{
+      font-size:15px;
+      margin-bottom:4px;
+    }
+    .project-row .info p{
+      font-size:12px;
+      line-height:1.5;
+    }
+    .project-row .tags span{
+      font-size:10px;
+      padding:3px 6px;
+    }
+  }
+
+  /* EDUCATION / EXPERIENCE - timeline */
+  .timeline{
+    max-width:800px;
+    width:100%;
+    border-left:1px solid var(--line);
+    padding-left:40px;
+    position:relative;
+  }
+  .timeline-item{
+    position:relative;
+    padding-bottom:48px;
+    border-radius:8px;
+    padding:24px;
+    padding-left:40px;
+    margin-left:-24px;
+    margin-bottom:16px;
+    transition:background 0.3s;
+  }
+  .timeline-item:hover, .timeline-item:focus-within{
+    background:rgba(79, 124, 255, 0.05);
+  }
+  .timeline-item:last-child{padding-bottom:24px;}
+  .timeline-item::before{
+    content:'';
+    position:absolute;
+    left:-45px;
+    top:30px;
+    width:10px;height:10px;
+    border-radius:50%;
+    background:var(--bg);
+    border:2px solid var(--blue);
+    z-index:1;
+  }
+  .timeline-item .period{
+    font-family:'JetBrains Mono', monospace;
+    font-size:clamp(11px, 1.5vw, 12px);
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .timeline-item h3{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:clamp(18px, 2.5vw, 20px);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .timeline-item p{
+    font-size:clamp(13px, 1.8vw, 14px);
+    color:var(--muted);
+    line-height:1.6;
+    max-width:55ch;
+  }
+
+  @media (max-width: 1024px){
+    .timeline{
+      padding-left:35px;
+    }
+    .timeline-item::before{
+      left:-40px;
+    }
+  }
+
+  @media (max-width: 768px){
+    .timeline{
+      padding-left:30px;
+    }
+    .timeline-item{
+      padding:20px;
+      padding-left:30px;
+      margin-left:-20px;
+      margin-bottom:12px;
+      padding-bottom:20px;
+    }
+    .timeline-item::before{
+      left:-35px;
+      top:24px;
+    }
+    .timeline-item h3{
+      font-size:clamp(16px, 2vw, 18px);
+    }
+    .timeline-item p{
+      font-size:clamp(12px, 1.6vw, 13px);
+      max-width:100%;
+    }
+  }
+
+  @media (max-width: 600px){
+    .timeline{
+      padding-left:28px;
+    }
+    .timeline-item{
+      padding:16px;
+      padding-left:24px;
+      margin-left:-16px;
+    }
+    .timeline-item::before{
+      left:-33px;
+      width:8px;
+      height:8px;
+      top:20px;
+    }
+    .timeline-item .period{
+      font-size:11px;
+    }
+    .timeline-item h3{
+      font-size:16px;
+    }
+    .timeline-item p{
+      font-size:12px;
+    }
+  }
+
+  @media (max-width: 480px){
+    .timeline{
+      padding-left:24px;
+      border-left-width:1px;
+    }
+    .timeline-item{
+      padding:14px;
+      padding-left:20px;
+      margin-left:-14px;
+      padding-bottom:14px;
+      margin-bottom:10px;
+    }
+    .timeline-item::before{
+      left:-29px;
+      width:8px;
+      height:8px;
+      top:16px;
+    }
+    .timeline-item .period{
+      font-size:10px;
+      margin-bottom:6px;
+    }
+    .timeline-item h3{
+      font-size:14px;
+      margin-bottom:4px;
+    }
+    .timeline-item p{
+      font-size:12px;
+      line-height:1.5;
+    }
+  }
+
+  /* CONTACT */
+  .contact-wrap{
+    max-width:700px;
+  }
+  .contact-wrap h2.title{
+    margin-bottom:24px;
+  }
+  .contact-wrap > p{
+    color:var(--muted);
+    font-size:clamp(14px, 2vw, 16px);
+    margin-bottom:48px;
+    max-width:50ch;
+    line-height:1.7;
+  }
+  .contact-links{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+  }
+  .contact-link{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 0;
+    border-bottom:1px solid var(--line);
+    text-decoration:none;
+    color:var(--text);
+    transition:color 0.3s, background 0.3s, padding 0.3s;
+    border-radius:8px;
+    padding:20px 16px;
+    margin:0 -16px;
+    min-height:48px;
+  }
+  .contact-link:hover, .contact-link:focus-visible{
+    color:var(--blue);
+    background:rgba(79, 124, 255, 0.05);
+    padding-left:32px;
+  }
+  .contact-link .label-text{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:clamp(16px, 2.5vw, 18px);
+    font-weight:500;
+  }
+  .contact-link .value{
+    font-family:'JetBrains Mono', monospace;
+    font-size:clamp(12px, 1.5vw, 14px);
+    color:var(--muted);
+    text-align:right;
+  }
+  footer{
+    padding:32px clamp(16px, 8vw, 100px);
+    font-family:'JetBrains Mono', monospace;
+    font-size:clamp(11px, 1.5vw, 12px);
+    color:var(--muted);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:20px;
+    border-top:1px solid var(--line);
+  }
+
+  @media (max-width: 768px){
+    .contact-wrap > p{
+      font-size:clamp(13px, 1.8vw, 15px);
+      margin-bottom:36px;
+      max-width:100%;
+    }
+    .contact-link{
+      padding:18px 12px;
+      margin:0 -12px;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:8px;
+      justify-content:flex-start;
+    }
+    .contact-link:hover, .contact-link:focus-visible{
+      padding-left:24px;
+    }
+    .contact-link .label-text{
+      font-size:clamp(15px, 2vw, 16px);
+    }
+    .contact-link .value{
+      font-size:clamp(12px, 1.5vw, 13px);
+      text-align:left;
+    }
+  }
+
+  @media (max-width: 600px){
+    .contact-wrap > p{
+      font-size:13px;
+      margin-bottom:28px;
+    }
+    .contact-link{
+      padding:16px 10px;
+      margin:0 -10px;
+      min-height:44px;
+    }
+    .contact-link:hover, .contact-link:focus-visible{
+      padding-left:20px;
+    }
+    .contact-link .label-text{
+      font-size:14px;
+    }
+    .contact-link .value{
+      font-size:11px;
+    }
+  }
+
+  @media (max-width: 480px){
+    .contact-link{
+      padding:14px 8px;
+      margin:0 -8px;
+      min-height:44px;
+    }
+    .contact-link:hover, .contact-link:focus-visible{
+      padding-left:16px;
+    }
+    .contact-link .label-text{
+      font-size:13px;
+    }
+    .contact-link .value{
+      font-size:11px;
+      display:none;
+    }
+    footer{
+      padding:20px 16px;
+      font-size:10px;
+      justify-content:center;
+      text-align:center;
+      flex-direction:column;
+    }
+  }
+
+  ::selection{
+    background:var(--blue);
+    color:var(--bg);
+  }
+
+  a:focus-visible, .project-row:focus-visible{
+    outline:2px solid var(--teal);
+    outline-offset:4px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+  <div class="logo">RIO FATKHUL ALAM HAMIZAN<span style="color:var(--blue)">.</span></div>
+  <div class="links">
+    <a href="#about">Tentang</a>
+    <a href="#skills">Skills</a>
+    <a href="#projects">Project</a>
+    <a href="#education">Riwayat</a>
+    <a href="#contact">Kontak</a>
+  </div>
+  <button class="hamburger" id="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#about">Tentang</a>
+  <a href="#skills">Skills</a>
+  <a href="#projects">Project</a>
+  <a href="#education">Riwayat</a>
+  <a href="#contact">Kontak</a>
+</div>
+
+<div class="content">
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="eyebrow">Bersedia Kolaborasi</div>
+    <h1>Rio<br>Fatkhul <br><span class="accent">Alam</span> Hamizan</h1>
+    <p class="sub">Saya adalah Mahasiswa Universitas Dian Nuswantoro Program Studi Teknik Informatika yang Membangun Website dan Aplikasi Berbasis Web dengan pendekatan yang terstruktur dan efisien.</p>
+    <div class="scroll-hint">
+      <div class="scroll-line"></div>
+      SCROLL
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="label">// 01 — TENTANG</div>
+    <h2 class="title">Tentang Saya</h2>
+    <div class="about-grid">
+      <div class="avatar">
+        <img src="fotorio.jpg">
+
+      </div>
+      <div class="about-text">
+        <p>Halo, saya <span class="highlight">Rio</span> — mahasiswa Informatika dengan dua fokus utama: membangun software yang aman dan terstruktur dengan baik, serta menganalisis<span class="highlight"> Pasar Financial </span> melalui <span class="highlight">Pendekatan Teknikal</span>.</p>
+        <p>Pekerjaan pengembangan saya mencakup web development dan cybersecurity, dengan fokus pada penulisan kode yang bersih dan terverifikasi, serta pemahaman sistem dari sisi pembangun maupun sisi penyerang.
+Selain studi teknis, saya juga menjalani trading finansial secara profesional, menerapkan metodologi Smart Money Concept (SMC) dan Support & Resistance untuk membaca struktur harga. Keahlian ini saya terjemahkan menjadi indikator Pine Script kustom untuk TradingView, dirancang untuk memvisualisasikan struktur pasar, zona likuiditas, dan level-level kunci secara presisi dan minim noise visual.</p>
+        <p>Saya melihat software development dan trading sebagai dua disiplin yang dibangun di atas fondasi yang sama: <span class="highlight">pemikiran terstruktur, validasi yang ketat, dan tanpa toleransi terhadap noise.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="label">// 02 — KEAHLIAN</div>
+    <h2 class="title">Skills &amp; Tech Stack</h2>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="icon-tag">SKILLS</div>
+        <h3>Web Development</h3>
+        <p>Membangun Website terstruktur dengan tampilan Modern dan Responsif.</p>
+        <div class="stack">
+          <span>HTML</span><span>CSS</span><span>JavaScript</span><span>PHP</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="icon-tag">TRADING TECHNICAL</div>
+        <h3>Technical Analysis</h3>
+        <p>Technical Analysis dengan pendekatan Smart Money Concept (SMC) dan Support & Resistance.</p>
+        <div class="stack">
+          <span>Pine Script</span><span>SMC/ICT/SNR/SND</span><span>TradingView</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="icon-tag">AI TRADING</div>
+        <h3>AI-Integrated Tools</h3>
+        <p>Menghubungkan data real-time dengan analisis berbasis AI.</p>
+        <div class="stack">
+          <span>ChatGPT AI</span><span>Gemini AI</span><span>Claude AI</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="icon-tag">Cyber Security</div>
+        <h3>Cybersecurity</h3>
+        <p>Pentester & Ethical Hacker</p>
+        <div class="stack">
+          <span>Security</span><span>Scanning Network</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="label">// 03 — KARYA</div>
+    <h2 class="title">Project Terpilih</h2>
+    <div class="projects-list">
+      <div class="project-row">
+        <div class="num">01</div>
+        <div class="info">
+          <h3>SMC Trading Assistant</h3>
+          <p>Terminal Python yang menggabungkan data real-time market dengan analisis AI untuk mendeteksi pola Smart Money Concept.</p>
+        </div>
+        <div class="tags"><span>CLAUDE</span><span>API</span></div>
+      </div>
+      <div class="project-row">
+        <div class="num">02</div>
+        <div class="info">
+          <h3>TradingView Indicator SmartMoneyConcept</h3>
+          <p>Indikator TradingView : BOS lines, Order Blocks, FVG, dan sinyal liquidity sweep.</p>
+        </div>
+        <div class="tags"><span>Pine Script</span></div>
+      </div>
+          <div class="project-row">
+        <div class="num">03</div>
+        <div class="info">
+          <h3>Web Development Project</h3>
+          <p>Web application development project using modern technologies.</p>
+        </div>
+        <div class="tags"><span>Web Development</span><span>JavaScript</span><span>HTML</span><span>CSS</span><span>PHP</span></div>
+      </div>
+      <div class="project-row">
+        <div class="num">04</div>
+        <div class="info">
+          <h3>Cyber Security Project</h3>
+          <p>Project penelitian dan pengembangan dalam bidang keamanan siber.</p>
+        </div>
+        <div class="tags"><span>Cyber Security</span><span>Penetration Testing</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EDUCATION -->
+  <section id="education">
+    <div class="label">// 04 — RIWAYAT</div>
+    <h2 class="title">Pendidikan &amp; Pengalaman</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="period">2024 — Sekarang</div>
+        <h3>AI Trading Tools</h3>
+        <p>Mengembangkan alat trading berbasis kecerdasan buatan. </p>
+      </div>
+      <div class="timeline-item">
+        <div class="period">2024 — Sekarang</div>
+        <h3>Web Development</h3>
+        <p>Mengembangkan aplikasi web menggunakan teknologi modern.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="period">2024 — Sekarang</div>
+        <h3>Cyber Security</h3>
+        <p>Mengembangkan solusi keamanan siber untuk melindungi sistem dan data.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="label">// 05 — Contact</div>
+    <div class="contact-wrap">
+      <h2 class="title">Mari Terhubung Bersama Saya</h2>
+      <p>Terbuka untuk diskusi project, kolaborasi, atau sekadar bertukar ide soal development dan CyberSecurity.</p>
+      <div class="contact-links">
+        <a href="mailto:riofatkhulalam310@gmail.com" class="contact-link">
+          <span class="label-text">Email</span>
+          <span class="value">riofatkhulalam310@gmail.com →</span>
+        </a>
+        <a href="https://github.com/riofatkhulalam310-cyber" class="contact-link" target="_blank">
+          <span class="label-text">GitHub</span>
+          <span class="value">@riofatkhulalam310-cyber →</span>
+        </a>
+        <a href="https://www.tiktok.com/@tradertegal_ryuu" class="contact-link" target="_blank">
+          <span class="label-text">TikTok</span>
+          <span class="value">@tradertegal_ryuu →</span>
+        </a>
+        <a href="https://www.instagram.com/MassRyuu3" class="contact-link" target="_blank">
+          <span class="label-text">Instagram</span>
+          <span class="value">@MassRyuu3 →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Rio Fatkhul Alam Hamizan</span>
+    <span>University Dian Nuswantoro</span>
+    <span>Semarang, Indonesia</span>
+  </footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  const canvas = document.getElementById('bg-canvas');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
+  // Reduce node count on mobile for better performance
+  const isMobile = window.innerWidth < 768;
+  const isSmallMobile = window.innerWidth < 480;
+  const NODE_COUNT = isSmallMobile ? 30 : isMobile ? 45 : 60;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera.position.z = 30;
+
+  const renderer = new THREE.WebGLRenderer({canvas: canvas, alpha:true, antialias:!isMobile});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  // ---- Node network (constellation) ----
+  const nodes = [];
+  const nodeGeo = new THREE.SphereGeometry(0.18, 8, 8);
+
+  const blueMat = new THREE.MeshBasicMaterial({color: 0x4F7CFF, transparent:true, opacity:0.9});
+  const tealMat = new THREE.MeshBasicMaterial({color: 0x2DD4BF, transparent:true, opacity:0.9});
+
+  const group = new THREE.Group();
+  scene.add(group);
+
+  for(let i=0;i<NODE_COUNT;i++){
+    const mat = Math.random() > 0.6 ? tealMat : blueMat;
+    const mesh = new THREE.Mesh(nodeGeo, mat);
+    const radius = 22;
+    const theta = Math.random()*Math.PI*2;
+    const phi = Math.acos((Math.random()*2)-1);
+    mesh.position.set(
+      radius*Math.sin(phi)*Math.cos(theta)*(0.6+Math.random()*0.8),
+      radius*Math.sin(phi)*Math.sin(theta)*(0.6+Math.random()*0.8),
+      radius*Math.cos(phi)*(0.6+Math.random()*0.8)
+    );
+    mesh.userData = {
+      basePos: mesh.position.clone(),
+      speed: 0.2 + Math.random()*0.4,
+      offset: Math.random()*Math.PI*2
+    };
+    nodes.push(mesh);
+    group.add(mesh);
+  }
+
+  // Connections (lines) between nearby nodes
+  const lineMat = new THREE.LineBasicMaterial({color:0x4F7CFF, transparent:true, opacity:0.12});
+  const linePositions = [];
+  for(let i=0;i<nodes.length;i++){
+    for(let j=i+1;j<nodes.length;j++){
+      const d = nodes[i].position.distanceTo(nodes[j].position);
+      if(d < 9){
+        linePositions.push(nodes[i].position.x, nodes[i].position.y, nodes[i].position.z);
+        linePositions.push(nodes[j].position.x, nodes[j].position.y, nodes[j].position.z);
+      }
+    }
+  }
+  const lineGeo = new THREE.BufferGeometry();
+  lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+  const lines = new THREE.LineSegments(lineGeo, lineMat);
+  group.add(lines);
+
+  // Mouse parallax - disable on touch devices for better performance
+  let mouseX = 0, mouseY = 0;
+  const supportsTouch = () => window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  
+  if(!supportsTouch()){
+    window.addEventListener('mousemove', (e)=>{
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
+  }
+
+  // Scroll-based rotation
+  let scrollProgress = 0;
+  function updateScroll(){
+    const max = document.body.scrollHeight - window.innerHeight;
+    scrollProgress = max > 0 ? window.scrollY / max : 0;
+  }
+  window.addEventListener('scroll', updateScroll, {passive:true});
+  updateScroll();
+
+  window.addEventListener('resize', ()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }, {passive:true});
+
+  let clock = new THREE.Clock();
+
+  function animate(){
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+
+    if(!reducedMotion){
+      // ambient float per node
+      nodes.forEach((n)=>{
+        const d = n.userData;
+        n.position.x = d.basePos.x + Math.sin(t*d.speed + d.offset)*0.6;
+        n.position.y = d.basePos.y + Math.cos(t*d.speed*0.8 + d.offset)*0.6;
+      });
+
+      group.rotation.y = scrollProgress * Math.PI * 1.2 + t*0.02;
+      group.rotation.x = scrollProgress * Math.PI * 0.3;
+
+      // mouse parallax (subtle) - only on non-touch devices
+      if(!supportsTouch()){
+        camera.position.x += (mouseX*3 - camera.position.x) * 0.02;
+        camera.position.y += (-mouseY*3 - camera.position.y) * 0.02;
+      }
+      camera.lookAt(0,0,0);
+    }
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+})();
+
+// Mobile Menu Toggle
+(function(){
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const mobileLinks = mobileMenu.querySelectorAll('a');
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    mobileMenu.classList.toggle('active');
+  });
+
+  mobileLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      hamburger.classList.remove('active');
+      mobileMenu.classList.remove('active');
+    });
+  });
+
+  // Close menu on escape key
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){
+      hamburger.classList.remove('active');
+      mobileMenu.classList.remove('active');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
